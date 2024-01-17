@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "i2c.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -57,12 +58,35 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint8_t temp=0;
 int fputc(int ch,FILE* f)
 {
 	uint8_t temp={ch};
 	HAL_UART_Transmit(&huart1,&temp,1,500);
 	return ch;
+}
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
+	temp++;
+	
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	printf("111");
+//	static uint8_t Flag=0;
+//	if(Flag)
+//		{
+//			HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
+//			Flag=0;
+//		
+//		}
+//	else
+//		{
+//			HAL_TIM_PWM_Stop(&htim2,TIM_CHANNEL_2);
+//			Flag=1;
+//		}
+//	
+
 }
 
 /* USER CODE END 0 */
@@ -74,7 +98,7 @@ int fputc(int ch,FILE* f)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -99,14 +123,19 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
+  MX_TIM2_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-  
+	
   	OLED_Init();
+	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
+	
 	
 	uint8_t test[]="start\r\n";
 	HAL_UART_Transmit(&huart1,test,8,50);
-	uint8_t temp;
-	OLED_ShowString(1,1,"12",16);
+	
+	HAL_TIM_Base_Start_IT(&htim2);
+
 
 
 	
@@ -120,10 +149,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	
+	   OLED_ShowNum(1,1,temp,8);
 	  HAL_GPIO_WritePin(LED_BLUE_GPIO_Port,LED_BLUE_Pin,GPIO_PIN_SET);
-	  HAL_Delay(1000);
-	  HAL_GPIO_WritePin(LED_BLUE_GPIO_Port,LED_BLUE_Pin,GPIO_PIN_RESET);
-	  HAL_Delay(1000);
+	  
   }
   /* USER CODE END 3 */
 }

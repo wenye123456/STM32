@@ -84,11 +84,11 @@ void OLED_Init()
 
 
 
-void OLED_SetPos(uint8_t x, uint8_t y)
+void OLED_SetPos(uint8_t y, uint8_t x)
 {
     OLED_WriteCommand(0xb0 + y);
     OLED_WriteCommand(((x & 0xf0) >> 4) | 0x10);
-    OLED_WriteCommand((x & 0x0f));
+    OLED_WriteCommand((x & 0x0f)|0x00);
 }
 void OLED_ShowString(uint8_t x, uint8_t y, char *chr, uint8_t size)
 {
@@ -106,7 +106,6 @@ void OLED_ShowString(uint8_t x, uint8_t y, char *chr, uint8_t size)
             OLED_SetPos(x, y + 1);
             for (uint8_t j = 0; j < 8; j++)
                 OLED_WriteData(F8X16[c * 16 + j + 8]);
-
             x += 8;
             if (x > 120)
             {
@@ -132,5 +131,39 @@ void OLED_ShowString(uint8_t x, uint8_t y, char *chr, uint8_t size)
             }
         }
     }
+}
+
+void OLED_ShowChar(uint8_t Line, uint8_t Column, char Char)
+{      	
+	uint8_t i;
+	OLED_SetPos((Line - 1) * 2, (Column - 1) * 8);		//设置光标位置在上半部分
+	for (i = 0; i < 8; i++)
+	{
+		OLED_WriteData(F8X16[(Char - ' ')*16+i]);			//显示上半部分内容
+	}
+	OLED_SetPos((Line - 1) * 2 + 1, (Column - 1) * 8);	//设置光标位置在下半部分
+	for (i = 0; i < 8; i++)
+	{
+		OLED_WriteData(F8X16[(Char - ' ')*16+ i + 8]);		//显示下半部分内容
+	}
+}
+
+uint32_t OLED_Pow(uint32_t X, uint32_t Y)
+{
+	uint32_t Result = 1;
+	while (Y--)
+	{
+		Result *= X;
+	}
+	return Result;
+}
+
+void OLED_ShowNum(uint8_t Line, uint8_t Column, uint32_t Number, uint8_t Length)
+{
+	uint8_t i;
+	for (i = 0; i < Length; i++)							
+	{
+		OLED_ShowChar(Line, Column + i, Number / OLED_Pow(10, Length - i - 1) % 10 + '0');
+	}
 }
 
